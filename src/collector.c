@@ -55,7 +55,8 @@ static int init_serial(const char* port) {
         return -1;
     }
     
-    printf("Serial port initialized successfully\n");
+    tcflush(fd, TCIOFLUSH); // 清空串口的输入输出缓冲区
+    printf("Serial port initialized and buffer flushed\n");
     return fd;
 }
 

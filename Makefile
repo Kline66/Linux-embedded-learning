@@ -16,4 +16,4 @@ build/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf build sensor_*.txt log_*.txt
+	rm -rf build sensor_*.csv sensor_*.csv.bak

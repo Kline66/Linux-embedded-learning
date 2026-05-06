@@ -9,9 +9,16 @@
 SharedBuffer g_buffer;//全局共享资源
 
 void handle_sigint(int sig){
-	printf("\n[Main]: 捕捉到信号 %d, 正在安全关闭...\n", sig);
-	g_buffer.stop_flag = true;
-	pthread_cond_broadcast(&g_buffer.cond);//唤醒所有等待的线程
+	static int press_count = 0;
+    press_count++;
+
+    if (press_count >= 2) {
+        printf("\n[Main]: 检测到二次中断，正在强制退出...\n");
+        exit(EXIT_FAILURE); // 第二次 Ctrl+C 直接终止进程
+    }
+
+    printf("\n[Main]: 捕捉到信号 %d, 尝试安全关闭 (请等待 1-2 秒)...\n", sig);
+    g_buffer.stop_flag = true;
 }
 
 int main(){
