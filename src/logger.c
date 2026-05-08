@@ -12,9 +12,7 @@ void* logger_thread(void*arg){
 
     //按日期生成文件名， 例如 log_20260420.csv
     char filename[64];
-    time_t t = time(NULL);
-    struct tm *tmp = localtime(&t);
-    strftime(filename, sizeof(filename), "sensor_log_%Y%m%d.csv", tmp);
+    
 
     while(1){
         pthread_mutex_lock(&shared->mutex);
@@ -31,7 +29,11 @@ void* logger_thread(void*arg){
             pthread_mutex_unlock(&shared->mutex);
             break;
         }
-        
+        //生成当天的日志文件名
+        time_t t = time(NULL);
+        struct tm *tmp = localtime(&t);
+        strftime(filename, sizeof(filename), "data/sensor_log_%Y%m%d.csv", tmp);
+
         // --- 日志切割逻辑 ---
         struct stat st;
         if (stat(filename, &st) == 0 && st.st_size >= MAX_LOG_SIZE) {
@@ -42,7 +44,7 @@ void* logger_thread(void*arg){
             strftime(date_buf, sizeof(date_buf), "%Y%m%d", tmp);
             
             // 2. 再用 sprintf 拼接完整备份文件名 (加入时间戳防止同天内多次切割冲突)
-            sprintf(old_name, "sensor_log_%s_%ld.csv.bak", date_buf, (long)time(NULL));
+            sprintf(old_name, "data/sensor_log_%s_%ld.csv.bak", date_buf, (long)time(NULL));
             
             if (rename(filename, old_name) == 0) {
                 printf("[Logger]: 日志已满 10MB, 重命名为: %s\n", old_name);
@@ -52,9 +54,13 @@ void* logger_thread(void*arg){
         }
 
         //写入文件
+        int needs_header = (access(filename, F_OK) == -1); // 如果文件不存在则需要写入表头
         FILE* fp = fopen(filename, "a");
         if (fp)
-        {
+        {   
+            if (needs_header) {
+                fprintf(fp, "Timestamp,Temperature,Humidity,Speed\n");
+            }
             // 格式：[时间],温度,湿度,转速
             fprintf(fp, "%s,%d,%d,%d\n", 
                     shared->data.timestamp, 

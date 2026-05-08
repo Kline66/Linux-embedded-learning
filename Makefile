@@ -6,14 +6,23 @@ SRCS = src/main.c src/collector.c src/logger.c
 OBJS = $(SRCS:src/%.c=build/%.o)
 TARGET = build/log_tool
 
-all: $(TARGET)
+BUILD_DIR = build
+DATA_DIR = data
+
+all: $(BUILD_DIR) $(DATA_DIR) $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
-build/%.o: src/%.c
-	@mkdir -p build
+$(BUILD_DIR):
+	@mkdir -p $(BUILD_DIR)
+
+$(DATA_DIR):
+	@mkdir -p $(DATA_DIR)
+
+$(BUILD_DIR)/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf build sensor_*.csv sensor_*.csv.bak
+	rm -rf $(BUILD_DIR)
+	rm -f $(DATA_DIR)/*.csv $(DATA_DIR)/*.bak
